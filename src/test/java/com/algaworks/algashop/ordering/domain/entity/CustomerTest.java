@@ -2,6 +2,7 @@ package com.algaworks.algashop.ordering.domain.entity;
 
 import com.algaworks.algashop.ordering.domain.exception.CustomerArchivedException;
 import com.algaworks.algashop.ordering.domain.utility.IdGenerator;
+import com.algaworks.algashop.ordering.domain.valueobject.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,12 +17,12 @@ class CustomerTest {
         Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(()-> {
                     new Customer(
-                            IdGenerator.generateTimeBasedUUID(),
-                            "Matheus Amaral",
-                            LocalDate.of(2002, 02, 27),
-                            "invalid",
-                            "(19)99250-1181",
-                            "123456-123",
+                            new CustomerId(),
+                            new FullName("Matheus", "Amaral"),
+                            new BirthDate(LocalDate.of(2002, 02, 27)),
+                            new Email("invalid"),
+                            new Phone("(19)99250-1181"),
+                            new Document("123456-123"),
                             false,
                              OffsetDateTime.now()
                     );
@@ -31,42 +32,42 @@ class CustomerTest {
     @Test
     void given_invalidEmail_whenTryUpdatedCustomer_shouldGenerateException() {
         Customer customer = new Customer(
-                IdGenerator.generateTimeBasedUUID(),
-                "Matheus Amaral",
-                LocalDate.of(2002, 02, 27),
-                "matheusthierri7@gmail.com",
-                "(19)99250-1181",
-                "123456-123",
+                new CustomerId(),
+                new FullName("Matheus", "Amaral"),
+                new BirthDate(LocalDate.of(2002, 02, 27)),
+                new Email("matheusthierri7@gmail.com"),
+                new Phone("(19)99250-1181"),
+                new Document("123456-123"),
                 false,
                 OffsetDateTime.now()
         );
 
         Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(()-> {
-                    customer.changeEmail("invalid");
+                    customer.changeEmail(new Email("invalid"));
                 });
     }
 
     @Test
     void given_unarchivedCustomer_whenArchive_shouldAnonymize() {
         Customer customer = new Customer(
-                IdGenerator.generateTimeBasedUUID(),
-                "Matheus Amaral",
-                LocalDate.of(2002, 02, 27),
-                "matheusthierri7@gmail.com",
-                "(19)99250-1181",
-                "123456-123",
+                new CustomerId(),
+                new FullName("Matheus", "Amaral"),
+                new BirthDate(LocalDate.of(2002, 02, 27)),
+                new Email("matheusthierri7@gmail.com"),
+                new Phone("(19)99250-1181"),
+                new Document("123456-123"),
                 false,
                 OffsetDateTime.now()
         );
         customer.archive();
 
         Assertions.assertWith(customer,
-                c -> assertThat(c.fullName()).isEqualTo("Anonymous"),
-                c -> assertThat(c.email()).isNotEqualTo("matheusthierri7@gmail.com"),
-                c -> assertThat(c.phone()).isEqualTo("000-000-0000"),
-                c -> assertThat(c.document()).isEqualTo("000-000-0000"),
-                c -> assertThat(c.birthDate()).isNull(),
+                c -> assertThat(c.fullName()).isEqualTo(new FullName("Anonymous", "Anonymous")),
+                c -> assertThat(c.email()).isNotEqualTo(new Email("matheusthierri7@gmail.com")),
+                c -> assertThat(c.phone()).isEqualTo(new Phone("000-000-0000")),
+                c -> assertThat(c.document()).isEqualTo(new Document("000-000-0000")),
+                c -> assertThat(c.birthDate()).isEqualTo(new BirthDate(LocalDate.of(1900, 01, 01))),
                 c -> assertThat(c.isPromotionNotificationsAllowed()).isFalse()
         );
     }
@@ -74,27 +75,27 @@ class CustomerTest {
     @Test
     void given_archivedCustomer_whenTryToUpdate_shouldGenerateException() {
         Customer customer = new Customer(
-                IdGenerator.generateTimeBasedUUID(),
-                "Anonymous",
-                null,
-                "anonymous@anonymous.com",
-                "000-000-0000",
-                "00-000-0000",
+                new CustomerId(),
+                new FullName("Anonymous", "Anonymous"),
+                new BirthDate(LocalDate.of(1900, 01, 01)),
+                new Email("anonymous@anonymous.com"),
+                new Document("000-000-0000"),
+                new Phone("00-000-0000"),
                 false,
                 true,
                 OffsetDateTime.now(),
                 OffsetDateTime.now(),
-                10
+                new LoyaltyPoints(10)
         );
 
         Assertions.assertThatExceptionOfType(CustomerArchivedException.class)
                 .isThrownBy(customer::archive);
 
         Assertions.assertThatExceptionOfType(CustomerArchivedException.class)
-                .isThrownBy(() -> customer.changeEmail("email@email.com"));
+                .isThrownBy(() -> customer.changeEmail(new Email("email@email.com")));
 
         Assertions.assertThatExceptionOfType(CustomerArchivedException.class)
-                .isThrownBy(() -> customer.changePhone("123-123-1111"));
+                .isThrownBy(() -> customer.changePhone(new Phone("123-123-1111")));
 
         Assertions.assertThatExceptionOfType(CustomerArchivedException.class)
                 .isThrownBy(() -> customer.enablePromotionNotifications());
@@ -106,38 +107,38 @@ class CustomerTest {
     @Test
     void given_brandNewCustomer_whenAddLoyaltyPoints_shouldSumPoints() {
         Customer customer = new Customer(
-                IdGenerator.generateTimeBasedUUID(),
-                "Matheus Amaral",
-                LocalDate.of(2002, 02, 27),
-                "matheusthierri7@gmail.com",
-                "(19)99250-1181",
-                "123456-123",
+                new CustomerId(),
+                new FullName("Matheus", "Amaral"),
+                new BirthDate(LocalDate.of(2002, 02, 27)),
+                new Email("matheusthierri7@gmail.com"),
+                new Phone("(19)99250-1181"),
+                new Document("123456-123"),
                 false,
                 OffsetDateTime.now()
         );
-        customer.addLoyaltyPoints(10);
-        customer.addLoyaltyPoints(20);
+        customer.addLoyaltyPoints(new LoyaltyPoints(10));
+        customer.addLoyaltyPoints(new LoyaltyPoints(20));
 
-        Assertions.assertThat(customer.loyaltyPoints()).isEqualTo(30);
+        Assertions.assertThat(customer.loyaltyPoints()).isEqualTo(new LoyaltyPoints(30));
     }
 
     @Test
     void given_brandNewCustomer_whenInvalidLoyaltyPoints_shouldGenerateException() {
         Customer customer = new Customer(
-                IdGenerator.generateTimeBasedUUID(),
-                "Matheus Amaral",
-                LocalDate.of(2002, 02, 27),
-                "matheusthierri7@gmail.com",
-                "(19)99250-1181",
-                "123456-123",
+                new CustomerId(),
+                new FullName("Matheus", "Amaral"),
+                new BirthDate(LocalDate.of(2002, 02, 27)),
+                new Email("matheusthierri7@gmail.com"),
+                new Phone("(19)99250-1181"),
+                new Document("123456-123"),
                 false,
                 OffsetDateTime.now()
         );
 
         Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> customer.addLoyaltyPoints(0));
+                .isThrownBy(() -> customer.addLoyaltyPoints(new LoyaltyPoints(0)));
 
         Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> customer.addLoyaltyPoints(-1));
+                .isThrownBy(() -> customer.addLoyaltyPoints(new LoyaltyPoints(-10)));
     }
 }
