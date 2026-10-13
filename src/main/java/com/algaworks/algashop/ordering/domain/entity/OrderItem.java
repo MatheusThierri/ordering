@@ -6,6 +6,7 @@ import com.algaworks.algashop.ordering.domain.valueobject.Quantity;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.OrderItemId;
 import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
+import lombok.Builder;
 
 import java.util.Objects;
 
@@ -21,9 +22,11 @@ public class OrderItem {
 
     private Money totalAmount;
 
-    public OrderItem(OrderItemId id, OrderId orderId, ProductName productName,
-                     ProductId productId, Money price, Money totalAmount,
-                     Quantity quantity) {
+    @Builder(builderClassName = "ExistingOrderItemBuilder", builderMethodName = "existing")
+    public OrderItem(OrderItemId id, OrderId orderId, ProductId productId,
+                     ProductName productName, Money price, Quantity quantity,
+                     Money totalAmount
+                     ) {
         this.setId(id);
         this.setOrderId(orderId);
         this.setProductName(productName);
@@ -31,6 +34,31 @@ public class OrderItem {
         this.setPrice(price);
         this.setTotalAmount(totalAmount);
         this.setQuantity(quantity);
+    }
+
+    @Builder(builderClassName = "BrandNewOrderItemBuilder", builderMethodName = "brandNew")
+    private static OrderItem createBrandNew(OrderId orderId, ProductId productId, ProductName productName,
+                                     Money price, Quantity quantity) {
+        OrderItem orderItem = new OrderItem(
+                new OrderItemId(),
+                orderId,
+                productId,
+                productName,
+                price,
+                quantity,
+                Money.ZERO
+        );
+
+        orderItem.recalculateTotals();
+
+        return orderItem;
+    };
+
+     void changeQuantity(Quantity quantity) {
+        Objects.requireNonNull(quantity);
+
+        this.setQuantity(quantity);
+        this.recalculateTotals();
     }
 
     public OrderItemId id() {
@@ -59,6 +87,10 @@ public class OrderItem {
 
     public Money totalAmount() {
         return totalAmount;
+    }
+
+    private void recalculateTotals() {
+        this.setTotalAmount(this.price().multiply(this.quantity()));
     }
 
     public void setId(OrderItemId id) {
