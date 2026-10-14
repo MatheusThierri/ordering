@@ -13,11 +13,9 @@ class OrderItemTest {
     @Test
     void shouldGenerate() {
         OrderItem orderItem = OrderItem.brandNew()
-                .productId(new ProductId())
-                .productName(new ProductName("Mouse Pad"))
-                .orderId(new OrderId())
+                .product(ProductTestDataBuilder.aProduct().build())
                 .quantity(new Quantity(1))
-                .price(new Money("100"))
+                .orderId(new OrderId())
                 .build();
     }
 }
