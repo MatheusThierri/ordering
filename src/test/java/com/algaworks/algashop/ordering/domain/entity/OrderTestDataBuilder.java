@@ -2,24 +2,19 @@ package com.algaworks.algashop.ordering.domain.entity;
 
 import com.algaworks.algashop.ordering.domain.valueobject.*;
 import com.algaworks.algashop.ordering.domain.valueobject.id.CustomerId;
-import com.algaworks.algashop.ordering.domain.valueobject.id.ProductId;
-import org.mockito.internal.matchers.Or;
 
 import java.time.LocalDate;
 
 public class OrderTestDataBuilder {
     private CustomerId customerId = new CustomerId();
     private PaymentMethod paymentMethod = PaymentMethod.GATEWAY_BALANCE;
-    private Money shippingCost = new Money("10.00");
-    private LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(1);
-    private ShippingInfo shippingInfo = aShippingInfo();
+    private Shipping shipping = aShipping();
     private BillingInfo billingInfo = aBillingInfo();
 
     private boolean withItems = true;
     private OrderStatus status = OrderStatus.DRAFT;
 
     private OrderTestDataBuilder() {
-
     }
 
     public static OrderTestDataBuilder anOrder() {
@@ -28,7 +23,7 @@ public class OrderTestDataBuilder {
 
     public Order build() {
         Order order = Order.draft(customerId);
-        order.changeShipping(shippingInfo, shippingCost, expectedDeliveryDate);
+        order.changeShipping(shipping);
         order.changeBilling(billingInfo);
         order.changePaymentMethod(paymentMethod);
 
@@ -63,12 +58,16 @@ public class OrderTestDataBuilder {
         return order;
     }
 
-    public static ShippingInfo aShippingInfo() {
-        return ShippingInfo.builder()
+    public static Shipping aShipping() {
+        return Shipping.builder()
+                .cost(new Money("10"))
+                .expectedDate(LocalDate.now().plusWeeks(1))
                 .address(anAddress())
-                .fullName(new FullName("John", "Doe"))
-                .document(new Document("112-33-2321"))
-                .phone(new Phone("111-441-1244"))
+                .recipient(Recipient.builder()
+                        .fullName(new FullName("John", "Doe"))
+                        .document(new Document("112-33-2321"))
+                        .phone(new Phone("111-441-1244"))
+                        .build())
                 .build();
     }
 
@@ -94,6 +93,30 @@ public class OrderTestDataBuilder {
                 .build();
     }
 
+    public static Shipping aShippingAlt() {
+        return Shipping.builder()
+                .cost(new Money("20"))
+                .expectedDate(LocalDate.now().plusWeeks(2))
+                .address(anAddressAlt())
+                .recipient(Recipient.builder()
+                        .fullName(new FullName("Mary", "Jones"))
+                        .document(new Document("552-11-4333"))
+                        .phone(new Phone("54-454-1144"))
+                        .build())
+                .build();
+    }
+
+    public static Address anAddressAlt() {
+        return Address.builder()
+                .street("Sansome Street")
+                .number("875")
+                .neighborhood("Sansome")
+                .city("San Francisco")
+                .state("California")
+                .zipCode(new ZipCode("08040"))
+                .build();
+    }
+
     public OrderTestDataBuilder customerId(CustomerId customerId) {
         this.customerId = customerId;
         return this;
@@ -104,18 +127,8 @@ public class OrderTestDataBuilder {
         return this;
     }
 
-    public OrderTestDataBuilder shippingCost(Money shippingCost) {
-        this.shippingCost = shippingCost;
-        return this;
-    }
-
-    public OrderTestDataBuilder expectedDeliveryDate(LocalDate expectedDeliveryDate) {
-        this.expectedDeliveryDate = expectedDeliveryDate;
-        return this;
-    }
-
-    public OrderTestDataBuilder shippingInfo(ShippingInfo shippingInfo) {
-        this.shippingInfo = shippingInfo;
+    public OrderTestDataBuilder shippingInfo(Shipping shipping) {
+        this.shipping = shipping;
         return this;
     }
 
